@@ -1,26 +1,44 @@
 const MedicoModel = require('../models/medicoModel');
 
+// Função helper para formatar data para MySQL (YYYY-MM-DD)
+const formatarDataParaMySQL = (data) => {
+  if (!data) return null;
+  // Se já estiver no formato correto, retorna
+  if (/^\d{4}-\d{2}-\d{2}$/.test(data)) {
+    return data;
+  }
+  // Se estiver no formato ISO, extrai apenas a data
+  if (data.includes('T')) {
+    return data.split('T')[0];
+  }
+  // Se for um objeto Date
+  if (data instanceof Date) {
+    return data.toISOString().split('T')[0];
+  }
+  return data;
+};
+
 class MedicoController {
-  // Criar novo médico
+  
   static async create(req, res) {
     try {
       const { nome, cpf, crm, data_nascimento, plano } = req.body;
 
-      // Validações básicas
+
       if (!nome || !cpf || !crm || !data_nascimento || !plano) {
         return res.status(400).json({ 
           error: 'Todos os campos são obrigatórios: nome, cpf, crm, data_nascimento, plano' 
         });
       }
 
-      // Validar plano (1, 2 ou 3)
+
       if (![1, 2, 3].includes(parseInt(plano))) {
         return res.status(400).json({ 
           error: 'Plano deve ser 1, 2 ou 3' 
         });
       }
 
-      // Verificar se CPF já existe
+
       const cpfExistente = await MedicoModel.findByCpf(cpf);
       if (cpfExistente) {
         return res.status(400).json({ 
@@ -28,7 +46,7 @@ class MedicoController {
         });
       }
 
-      // Verificar se CRM já existe
+
       const crmExistente = await MedicoModel.findByCrm(crm);
       if (crmExistente) {
         return res.status(400).json({ 
@@ -36,7 +54,11 @@ class MedicoController {
         });
       }
 
-      const medicoId = await MedicoModel.create(req.body);
+      const dadosMedico = {
+        ...req.body,
+        data_nascimento: formatarDataParaMySQL(req.body.data_nascimento)
+      };
+      const medicoId = await MedicoModel.create(dadosMedico);
       
       res.status(201).json({ 
         message: 'Médico cadastrado com sucesso',
@@ -51,7 +73,7 @@ class MedicoController {
     }
   }
 
-  // Listar todos os médicos
+
   static async getAll(req, res) {
     try {
       const medicos = await MedicoModel.findAll();
@@ -65,7 +87,7 @@ class MedicoController {
     }
   }
 
-  // Buscar médico por ID
+
   static async getById(req, res) {
     try {
       const { id } = req.params;
@@ -87,7 +109,7 @@ class MedicoController {
     }
   }
 
-  // Buscar médicos por plano
+
   static async getByPlano(req, res) {
     try {
       const { plano } = req.params;
@@ -109,13 +131,13 @@ class MedicoController {
     }
   }
 
-  // Atualizar médico
+
   static async update(req, res) {
     try {
       const { id } = req.params;
       const { nome, cpf, crm, data_nascimento, plano } = req.body;
 
-      // Verificar se médico existe
+
       const medicoExistente = await MedicoModel.findById(id);
       if (!medicoExistente) {
         return res.status(404).json({ 
@@ -123,21 +145,21 @@ class MedicoController {
         });
       }
 
-      // Validações básicas
+
       if (!nome || !cpf || !crm || !data_nascimento || !plano) {
         return res.status(400).json({ 
           error: 'Todos os campos são obrigatórios: nome, cpf, crm, data_nascimento, plano' 
         });
       }
 
-      // Validar plano (1, 2 ou 3)
+
       if (![1, 2, 3].includes(parseInt(plano))) {
         return res.status(400).json({ 
           error: 'Plano deve ser 1, 2 ou 3' 
         });
       }
 
-      // Verificar se CPF já existe em outro médico
+  
       const cpfExistente = await MedicoModel.findByCpf(cpf);
       if (cpfExistente && cpfExistente.id != id) {
         return res.status(400).json({ 
@@ -145,7 +167,7 @@ class MedicoController {
         });
       }
 
-      // Verificar se CRM já existe em outro médico
+
       const crmExistente = await MedicoModel.findByCrm(crm);
       if (crmExistente && crmExistente.id != id) {
         return res.status(400).json({ 
@@ -153,7 +175,11 @@ class MedicoController {
         });
       }
 
-      await MedicoModel.update(id, req.body);
+      const dadosMedico = {
+        ...req.body,
+        data_nascimento: formatarDataParaMySQL(req.body.data_nascimento)
+      };
+      await MedicoModel.update(id, dadosMedico);
       
       res.json({ 
         message: 'Médico atualizado com sucesso' 
@@ -167,12 +193,12 @@ class MedicoController {
     }
   }
 
-  // Deletar médico
+
   static async delete(req, res) {
     try {
       const { id } = req.params;
 
-      // Verificar se médico existe
+
       const medico = await MedicoModel.findById(id);
       if (!medico) {
         return res.status(404).json({ 

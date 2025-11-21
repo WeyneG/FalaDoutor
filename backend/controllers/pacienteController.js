@@ -1,26 +1,44 @@
 const PacienteModel = require('../models/pacienteModel');
 
+// Função helper para formatar data para MySQL (YYYY-MM-DD)
+const formatarDataParaMySQL = (data) => {
+  if (!data) return null;
+  // Se já estiver no formato correto, retorna
+  if (/^\d{4}-\d{2}-\d{2}$/.test(data)) {
+    return data;
+  }
+  // Se estiver no formato ISO, extrai apenas a data
+  if (data.includes('T')) {
+    return data.split('T')[0];
+  }
+  // Se for um objeto Date
+  if (data instanceof Date) {
+    return data.toISOString().split('T')[0];
+  }
+  return data;
+};
+
 class PacienteController {
-  // Criar novo paciente
+
   static async create(req, res) {
     try {
       const { nome, cpf, data_nascimento, plano } = req.body;
 
-      // Validações básicas
+
       if (!nome || !cpf || !data_nascimento || !plano) {
         return res.status(400).json({ 
           error: 'Todos os campos são obrigatórios: nome, cpf, data_nascimento, plano' 
         });
       }
 
-      // Validar plano (1, 2 ou 3)
+
       if (![1, 2, 3].includes(parseInt(plano))) {
         return res.status(400).json({ 
           error: 'Plano deve ser 1, 2 ou 3' 
         });
       }
 
-      // Verificar se CPF já existe
+
       const cpfExistente = await PacienteModel.findByCpf(cpf);
       if (cpfExistente) {
         return res.status(400).json({ 
@@ -28,7 +46,11 @@ class PacienteController {
         });
       }
 
-      const pacienteId = await PacienteModel.create(req.body);
+      const dadosPaciente = {
+        ...req.body,
+        data_nascimento: formatarDataParaMySQL(req.body.data_nascimento)
+      };
+      const pacienteId = await PacienteModel.create(dadosPaciente);
       
       res.status(201).json({ 
         message: 'Paciente cadastrado com sucesso',
@@ -43,7 +65,7 @@ class PacienteController {
     }
   }
 
-  // Listar todos os pacientes
+
   static async getAll(req, res) {
     try {
       const pacientes = await PacienteModel.findAll();
@@ -57,7 +79,7 @@ class PacienteController {
     }
   }
 
-  // Buscar paciente por ID
+
   static async getById(req, res) {
     try {
       const { id } = req.params;
@@ -79,14 +101,14 @@ class PacienteController {
     }
   }
 
-  // Buscar pacientes por plano
+
   static async getByPlano(req, res) {
     try {
       const { plano } = req.params;
 
       if (![1, 2, 3].includes(parseInt(plano))) {
-        return res.status(400).json({ 
-          error: 'Plano deve ser 1, 2 ou 3' 
+        return res.status(400).json({
+          error: 'Plano deve ser 1, 2 ou 3'
         });
       }
 
@@ -101,13 +123,13 @@ class PacienteController {
     }
   }
 
-  // Atualizar paciente
+
   static async update(req, res) {
     try {
       const { id } = req.params;
       const { nome, cpf, data_nascimento, plano } = req.body;
 
-      // Verificar se paciente existe
+
       const pacienteExistente = await PacienteModel.findById(id);
       if (!pacienteExistente) {
         return res.status(404).json({ 
@@ -115,21 +137,21 @@ class PacienteController {
         });
       }
 
-      // Validações básicas
+
       if (!nome || !cpf || !data_nascimento || !plano) {
         return res.status(400).json({ 
           error: 'Todos os campos são obrigatórios: nome, cpf, data_nascimento, plano' 
         });
       }
 
-      // Validar plano (1, 2 ou 3)
+
       if (![1, 2, 3].includes(parseInt(plano))) {
         return res.status(400).json({ 
           error: 'Plano deve ser 1, 2 ou 3' 
         });
       }
 
-      // Verificar se CPF já existe em outro paciente
+
       const cpfExistente = await PacienteModel.findByCpf(cpf);
       if (cpfExistente && cpfExistente.id != id) {
         return res.status(400).json({ 
@@ -137,7 +159,11 @@ class PacienteController {
         });
       }
 
-      await PacienteModel.update(id, req.body);
+      const dadosPaciente = {
+        ...req.body,
+        data_nascimento: formatarDataParaMySQL(req.body.data_nascimento)
+      };
+      await PacienteModel.update(id, dadosPaciente);
       
       res.json({ 
         message: 'Paciente atualizado com sucesso' 
@@ -151,12 +177,12 @@ class PacienteController {
     }
   }
 
-  // Deletar paciente
+
   static async delete(req, res) {
     try {
       const { id } = req.params;
 
-      // Verificar se paciente existe
+
       const paciente = await PacienteModel.findById(id);
       if (!paciente) {
         return res.status(404).json({ 

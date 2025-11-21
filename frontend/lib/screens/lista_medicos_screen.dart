@@ -263,8 +263,8 @@ class _ListaMedicosScreenState extends State<ListaMedicosScreen> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.visibility, color: Colors.blue),
-                    onPressed: () {
-                      Navigator.push(
+                    onPressed: () async {
+                      final resultado = await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => DetalhesMedicoScreen(
@@ -273,6 +273,9 @@ class _ListaMedicosScreenState extends State<ListaMedicosScreen> {
                           ),
                         ),
                       );
+                      if (resultado == true) {
+                        _carregarMedicos();
+                      }
                     },
                     tooltip: 'Ver detalhes',
                   ),
@@ -283,8 +286,8 @@ class _ListaMedicosScreenState extends State<ListaMedicosScreen> {
                   ),
                 ],
               ),
-              onTap: () {
-                Navigator.push(
+              onTap: () async {
+                final resultado = await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => DetalhesMedicoScreen(
@@ -293,6 +296,9 @@ class _ListaMedicosScreenState extends State<ListaMedicosScreen> {
                     ),
                   ),
                 );
+                if (resultado == true) {
+                  _carregarMedicos();
+                }
               },
             ),
           );

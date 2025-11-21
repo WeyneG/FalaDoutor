@@ -51,8 +51,9 @@ class DetalhesPacienteScreen extends StatelessWidget {
                 ),
               );
               if (resultado == true) {
-                onUpdate();
-                Navigator.pop(context);
+                if (context.mounted) {
+                  Navigator.pop(context, true);
+                }
               }
             },
             tooltip: 'Editar',

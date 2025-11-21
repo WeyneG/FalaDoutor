@@ -262,8 +262,8 @@ class _ListaPacientesScreenState extends State<ListaPacientesScreen> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.visibility, color: Colors.blue),
-                    onPressed: () {
-                      Navigator.push(
+                    onPressed: () async {
+                      final resultado = await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => DetalhesPacienteScreen(
@@ -272,6 +272,9 @@ class _ListaPacientesScreenState extends State<ListaPacientesScreen> {
                           ),
                         ),
                       );
+                      if (resultado == true) {
+                        _carregarPacientes();
+                      }
                     },
                     tooltip: 'Ver detalhes',
                   ),
@@ -282,8 +285,8 @@ class _ListaPacientesScreenState extends State<ListaPacientesScreen> {
                   ),
                 ],
               ),
-              onTap: () {
-                Navigator.push(
+              onTap: () async {
+                final resultado = await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => DetalhesPacienteScreen(
@@ -292,6 +295,9 @@ class _ListaPacientesScreenState extends State<ListaPacientesScreen> {
                     ),
                   ),
                 );
+                if (resultado == true) {
+                  _carregarPacientes();
+                }
               },
             ),
           );

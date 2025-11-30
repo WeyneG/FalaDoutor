@@ -215,7 +215,7 @@ class _ListaPacientesScreenState extends State<ListaPacientesScreen> {
                 vertical: 8,
               ),
               leading: CircleAvatar(
-                backgroundColor: _getCorPlano(paciente.plano),
+                backgroundColor: _getCorPlano(paciente.planoId),
                 child: Text(
                   paciente.nome.substring(0, 1).toUpperCase(),
                   style: const TextStyle(
@@ -243,14 +243,14 @@ class _ListaPacientesScreenState extends State<ListaPacientesScreen> {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: _getCorPlano(paciente.plano).withOpacity(0.2),
+                      color: _getCorPlano(paciente.planoId).withOpacity(0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       paciente.nomePlano,
                       style: TextStyle(
                         fontSize: 12,
-                        color: _getCorPlano(paciente.plano),
+                        color: _getCorPlano(paciente.planoId),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -306,16 +306,10 @@ class _ListaPacientesScreenState extends State<ListaPacientesScreen> {
     );
   }
 
-  Color _getCorPlano(int plano) {
-    switch (plano) {
-      case 1:
-        return Colors.blue;
-      case 2:
-        return Colors.orange;
-      case 3:
-        return Colors.purple;
-      default:
-        return Colors.grey;
-    }
+  Color _getCorPlano(String planoId) {
+    // Gera cor dinâmica baseada no hash do ID do plano
+    int hash = planoId.hashCode;
+    double hue = (hash % 360).toDouble();
+    return HSLColor.fromAHSL(1.0, hue, 0.65, 0.5).toColor();
   }
 }

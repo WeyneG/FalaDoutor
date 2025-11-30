@@ -1,4 +1,5 @@
 const PacienteModel = require('../models/pacienteModel');
+const PlanoModel = require('../models/planoModel');
 
 // Função helper para formatar data para MySQL (YYYY-MM-DD)
 const formatarDataParaMySQL = (data) => {
@@ -22,19 +23,20 @@ class PacienteController {
 
   static async create(req, res) {
     try {
-      const { nome, cpf, data_nascimento, plano } = req.body;
+      const { nome, cpf, data_nascimento, plano_id } = req.body;
 
 
-      if (!nome || !cpf || !data_nascimento || !plano) {
+      if (!nome || !cpf || !data_nascimento || !plano_id) {
         return res.status(400).json({ 
-          error: 'Todos os campos são obrigatórios: nome, cpf, data_nascimento, plano' 
+          error: 'Todos os campos são obrigatórios: nome, cpf, data_nascimento, plano_id' 
         });
       }
 
 
-      if (![1, 2, 3].includes(parseInt(plano))) {
+      const planoExiste = await PlanoModel.exists(plano_id);
+      if (!planoExiste) {
         return res.status(400).json({ 
-          error: 'Plano deve ser 1, 2 ou 3' 
+          error: 'Plano não encontrado' 
         });
       }
 
@@ -106,9 +108,10 @@ class PacienteController {
     try {
       const { plano } = req.params;
 
-      if (![1, 2, 3].includes(parseInt(plano))) {
+      const planoExiste = await PlanoModel.exists(plano);
+      if (!planoExiste) {
         return res.status(400).json({
-          error: 'Plano deve ser 1, 2 ou 3'
+          error: 'Plano não encontrado'
         });
       }
 
@@ -127,7 +130,7 @@ class PacienteController {
   static async update(req, res) {
     try {
       const { id } = req.params;
-      const { nome, cpf, data_nascimento, plano } = req.body;
+      const { nome, cpf, data_nascimento, plano_id } = req.body;
 
 
       const pacienteExistente = await PacienteModel.findById(id);
@@ -138,16 +141,17 @@ class PacienteController {
       }
 
 
-      if (!nome || !cpf || !data_nascimento || !plano) {
+      if (!nome || !cpf || !data_nascimento || !plano_id) {
         return res.status(400).json({ 
-          error: 'Todos os campos são obrigatórios: nome, cpf, data_nascimento, plano' 
+          error: 'Todos os campos são obrigatórios: nome, cpf, data_nascimento, plano_id' 
         });
       }
 
 
-      if (![1, 2, 3].includes(parseInt(plano))) {
+      const planoExiste = await PlanoModel.exists(plano_id);
+      if (!planoExiste) {
         return res.status(400).json({ 
-          error: 'Plano deve ser 1, 2 ou 3' 
+          error: 'Plano não encontrado' 
         });
       }
 

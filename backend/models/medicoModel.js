@@ -3,15 +3,15 @@ const db = require('../config/database');
 class MedicoModel {
   // Criar um novo médico
   static async create(medico) {
-    const { nome, cpf, crm, data_nascimento, plano } = medico;
+    const { nome, cpf, crm, data_nascimento, plano_id } = medico;
     
     const query = `
-      INSERT INTO medicos (nome, cpf, crm, data_nascimento, plano)
+      INSERT INTO medicos (nome, cpf, crm, data_nascimento, plano_id)
       VALUES (?, ?, ?, ?, ?)
     `;
     
     try {
-      const [result] = await db.execute(query, [nome, cpf, crm, data_nascimento, plano]);
+      const [result] = await db.execute(query, [nome, cpf, crm, data_nascimento, plano_id]);
       return result.insertId;
     } catch (error) {
       throw error;
@@ -20,7 +20,15 @@ class MedicoModel {
 
   // Buscar todos os médicos
   static async findAll() {
-    const query = 'SELECT * FROM medicos ORDER BY nome';
+    const query = `
+      SELECT 
+        m.*,
+        p.nome as plano_nome,
+        CAST(p.valor AS CHAR) as plano_valor
+      FROM medicos m
+      LEFT JOIN planos p ON m.plano_id = p.id
+      ORDER BY m.nome
+    `;
     
     try {
       const [rows] = await db.execute(query);
@@ -32,7 +40,15 @@ class MedicoModel {
 
   // Buscar médico por ID
   static async findById(id) {
-    const query = 'SELECT * FROM medicos WHERE id = ?';
+    const query = `
+      SELECT 
+        m.*,
+        p.nome as plano_nome,
+        CAST(p.valor AS CHAR) as plano_valor
+      FROM medicos m
+      LEFT JOIN planos p ON m.plano_id = p.id
+      WHERE m.id = ?
+    `;
     
     try {
       const [rows] = await db.execute(query, [id]);
@@ -68,16 +84,16 @@ class MedicoModel {
 
   // Atualizar médico
   static async update(id, medico) {
-    const { nome, cpf, crm, data_nascimento, plano } = medico;
+    const { nome, cpf, crm, data_nascimento, plano_id } = medico;
     
     const query = `
       UPDATE medicos 
-      SET nome = ?, cpf = ?, crm = ?, data_nascimento = ?, plano = ?
+      SET nome = ?, cpf = ?, crm = ?, data_nascimento = ?, plano_id = ?
       WHERE id = ?
     `;
     
     try {
-      const [result] = await db.execute(query, [nome, cpf, crm, data_nascimento, plano, id]);
+      const [result] = await db.execute(query, [nome, cpf, crm, data_nascimento, plano_id, id]);
       return result.affectedRows;
     } catch (error) {
       throw error;
@@ -97,11 +113,20 @@ class MedicoModel {
   }
 
   // Buscar médicos por plano
-  static async findByPlano(plano) {
-    const query = 'SELECT * FROM medicos WHERE plano = ? ORDER BY nome';
+  static async findByPlano(planoId) {
+    const query = `
+      SELECT 
+        m.*,
+        p.nome as plano_nome,
+        p.valor as plano_valor
+      FROM medicos m
+      LEFT JOIN planos p ON m.plano_id = p.id
+      WHERE m.plano_id = ?
+      ORDER BY m.nome
+    `;
     
     try {
-      const [rows] = await db.execute(query, [plano]);
+      const [rows] = await db.execute(query, [planoId]);
       return rows;
     } catch (error) {
       throw error;

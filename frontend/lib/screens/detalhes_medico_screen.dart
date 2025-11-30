@@ -22,17 +22,11 @@ class DetalhesMedicoScreen extends StatelessWidget {
     }
   }
 
-  Color _getCorPlano(int plano) {
-    switch (plano) {
-      case 1:
-        return Colors.blue;
-      case 2:
-        return Colors.orange;
-      case 3:
-        return Colors.purple;
-      default:
-        return Colors.grey;
-    }
+  Color _getCorPlano(String planoId) {
+    // Gera cor dinâmica baseada no hash do ID do plano
+    int hash = planoId.hashCode;
+    double hue = (hash % 360).toDouble();
+    return HSLColor.fromAHSL(1.0, hue, 0.65, 0.5).toColor();
   }
 
   @override
@@ -72,8 +66,8 @@ class DetalhesMedicoScreen extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    _getCorPlano(medico.plano),
-                    _getCorPlano(medico.plano).withOpacity(0.7),
+                    _getCorPlano(medico.planoId),
+                    _getCorPlano(medico.planoId).withOpacity(0.7),
                   ],
                 ),
               ),
@@ -87,7 +81,7 @@ class DetalhesMedicoScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 40,
                         fontWeight: FontWeight.bold,
-                        color: _getCorPlano(medico.plano),
+                        color: _getCorPlano(medico.planoId),
                       ),
                     ),
                   ),

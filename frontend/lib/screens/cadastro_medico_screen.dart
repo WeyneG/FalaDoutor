@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../models/medico.dart';
+import '../models/plano.dart';
 import '../services/medico_service.dart';
+import '../services/plano_service.dart';
 
 class CadastroMedicoScreen extends StatefulWidget {
   final Medico? medico;
@@ -16,24 +18,51 @@ class CadastroMedicoScreen extends StatefulWidget {
 class _CadastroMedicoScreenState extends State<CadastroMedicoScreen> {
   final _formKey = GlobalKey<FormState>();
   final MedicoService _medicoService = MedicoService();
+  final PlanoService _planoService = PlanoService();
 
   final _nomeController = TextEditingController();
   final _cpfController = TextEditingController();
   final _crmController = TextEditingController();
   final _dataNascimentoController = TextEditingController();
 
-  int _planoSelecionado = 1;
+  String? _planoSelecionado;
+  List<Plano> _planos = [];
   bool _isLoading = false;
+  bool _isLoadingPlanos = true;
 
   @override
   void initState() {
     super.initState();
+    _carregarPlanos();
     if (widget.medico != null) {
       _nomeController.text = widget.medico!.nome;
       _cpfController.text = widget.medico!.cpf;
       _crmController.text = widget.medico!.crm;
       _dataNascimentoController.text = widget.medico!.dataNascimento;
-      _planoSelecionado = widget.medico!.plano;
+      _planoSelecionado = widget.medico!.planoId;
+    }
+  }
+
+  Future<void> _carregarPlanos() async {
+    try {
+      final planos = await _planoService.getPlanos();
+      setState(() {
+        // Ordena planos do mais barato para o mais caro
+        _planos = planos..sort((a, b) => a.valor.compareTo(b.valor));
+        _isLoadingPlanos = false;
+        if (_planoSelecionado == null && planos.isNotEmpty) {
+          _planoSelecionado = planos.first.id;
+        }
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingPlanos = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao carregar planos: $e')),
+        );
+      }
     }
   }
 
@@ -76,7 +105,7 @@ class _CadastroMedicoScreenState extends State<CadastroMedicoScreen> {
       cpf: _cpfController.text.replaceAll(RegExp(r'[^0-9]'), ''),
       crm: _crmController.text,
       dataNascimento: _dataNascimentoController.text,
-      plano: _planoSelecionado,
+      planoId: _planoSelecionado!,
     );
 
     try {
@@ -215,18 +244,33 @@ class _CadastroMedicoScreenState extends State<CadastroMedicoScreen> {
             const SizedBox(height: 24),
 
             // Plano
-            const Text(
-              'Selecione o Plano',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            
-            _buildPlanoOption(1, 'Plano 1 - Básico', Colors.blue),
-            _buildPlanoOption(2, 'Plano 2 - Intermediário', Colors.orange),
-            _buildPlanoOption(3, 'Plano 3 - Premium', Colors.purple),
+            _isLoadingPlanos
+                ? const Center(child: CircularProgressIndicator())
+                : DropdownButtonFormField<String>(
+                    value: _planoSelecionado,
+                    decoration: const InputDecoration(
+                      labelText: 'Plano *',
+                      prefixIcon: Icon(Icons.card_membership),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: _planos.map((plano) {
+                      return DropdownMenuItem<String>(
+                        value: plano.id,
+                        child: Text('${plano.nome} - ${plano.valorFormatado}'),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _planoSelecionado = value;
+                      });
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor, selecione um plano';
+                      }
+                      return null;
+                    },
+                  ),
 
             const SizedBox(height: 32),
 
@@ -258,46 +302,6 @@ class _CadastroMedicoScreenState extends State<CadastroMedicoScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPlanoOption(int plano, String titulo, Color cor) {
-    final isSelected = _planoSelecionado == plano;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _planoSelecionado = plano;
-        });
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isSelected ? cor.withOpacity(0.1) : Colors.grey[100],
-          border: Border.all(
-            color: isSelected ? cor : Colors.grey[300]!,
-            width: isSelected ? 2 : 1,
-          ),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
-              color: isSelected ? cor : Colors.grey,
-            ),
-            const SizedBox(width: 12),
-            Text(
-              titulo,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? cor : Colors.black87,
               ),
             ),
           ],

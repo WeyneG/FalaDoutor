@@ -215,7 +215,7 @@ class _ListaMedicosScreenState extends State<ListaMedicosScreen> {
                 vertical: 8,
               ),
               leading: CircleAvatar(
-                backgroundColor: _getCorPlano(medico.plano),
+                backgroundColor: _getCorPlano(medico.planoId),
                 child: Text(
                   medico.nome.substring(0, 1).toUpperCase(),
                   style: const TextStyle(
@@ -244,14 +244,14 @@ class _ListaMedicosScreenState extends State<ListaMedicosScreen> {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: _getCorPlano(medico.plano).withOpacity(0.2),
+                      color: _getCorPlano(medico.planoId).withOpacity(0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       medico.nomePlano,
                       style: TextStyle(
                         fontSize: 12,
-                        color: _getCorPlano(medico.plano),
+                        color: _getCorPlano(medico.planoId),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -307,16 +307,10 @@ class _ListaMedicosScreenState extends State<ListaMedicosScreen> {
     );
   }
 
-  Color _getCorPlano(int plano) {
-    switch (plano) {
-      case 1:
-        return Colors.blue;
-      case 2:
-        return Colors.orange;
-      case 3:
-        return Colors.purple;
-      default:
-        return Colors.grey;
-    }
+  Color _getCorPlano(String planoId) {
+    // Gera cor dinâmica baseada no hash do ID do plano
+    int hash = planoId.hashCode;
+    double hue = (hash % 360).toDouble();
+    return HSLColor.fromAHSL(1.0, hue, 0.65, 0.5).toColor();
   }
 }

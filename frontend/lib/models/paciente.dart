@@ -3,7 +3,9 @@ class Paciente {
   final String nome;
   final String cpf;
   final String dataNascimento;
-  final int plano;
+  final String planoId;
+  final String? planoNome;
+  final double? planoValor;
   final String? createdAt;
   final String? updatedAt;
 
@@ -12,7 +14,9 @@ class Paciente {
     required this.nome,
     required this.cpf,
     required this.dataNascimento,
-    required this.plano,
+    required this.planoId,
+    this.planoNome,
+    this.planoValor,
     this.createdAt,
     this.updatedAt,
   });
@@ -24,7 +28,15 @@ class Paciente {
       nome: json['nome'],
       cpf: json['cpf'],
       dataNascimento: json['data_nascimento'],
-      plano: json['plano'] is String ? int.parse(json['plano']) : json['plano'],
+      planoId: json['plano_id'] ?? '',
+      planoNome: json['plano_nome'],
+      planoValor: json['plano_valor'] != null 
+          ? (json['plano_valor'] is String 
+              ? double.parse(json['plano_valor']) 
+              : (json['plano_valor'] is int 
+                  ? (json['plano_valor'] as int).toDouble() 
+                  : json['plano_valor'] as double))
+          : null,
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
     );
@@ -36,7 +48,7 @@ class Paciente {
       'nome': nome,
       'cpf': cpf,
       'data_nascimento': dataNascimento,
-      'plano': plano,
+      'plano_id': planoId,
     };
   }
 
@@ -50,15 +62,6 @@ class Paciente {
 
   // Nome do plano
   String get nomePlano {
-    switch (plano) {
-      case 1:
-        return 'Plano 1 - Básico';
-      case 2:
-        return 'Plano 2 - Intermediário';
-      case 3:
-        return 'Plano 3 - Premium';
-      default:
-        return 'Plano $plano';
-    }
+    return planoNome ?? 'Plano $planoId';
   }
 }

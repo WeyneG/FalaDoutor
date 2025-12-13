@@ -25,7 +25,7 @@ class _CadastroMedicoScreenState extends State<CadastroMedicoScreen> {
   final _crmController = TextEditingController();
   final _dataNascimentoController = TextEditingController();
 
-  String? _planoSelecionado;
+  List<String> _planosSelecionados = [];
   List<Plano> _planos = [];
   bool _isLoading = false;
   bool _isLoadingPlanos = true;
@@ -39,7 +39,7 @@ class _CadastroMedicoScreenState extends State<CadastroMedicoScreen> {
       _cpfController.text = widget.medico!.cpf;
       _crmController.text = widget.medico!.crm;
       _dataNascimentoController.text = widget.medico!.dataNascimento;
-      _planoSelecionado = widget.medico!.planoId;
+      _planosSelecionados = List<String>.from(widget.medico!.planoIds);
     }
   }
 
@@ -50,9 +50,6 @@ class _CadastroMedicoScreenState extends State<CadastroMedicoScreen> {
         // Ordena planos do mais barato para o mais caro
         _planos = planos..sort((a, b) => a.valor.compareTo(b.valor));
         _isLoadingPlanos = false;
-        if (_planoSelecionado == null && planos.isNotEmpty) {
-          _planoSelecionado = planos.first.id;
-        }
       });
     } catch (e) {
       setState(() {
@@ -105,7 +102,7 @@ class _CadastroMedicoScreenState extends State<CadastroMedicoScreen> {
       cpf: _cpfController.text.replaceAll(RegExp(r'[^0-9]'), ''),
       crm: _crmController.text,
       dataNascimento: _dataNascimentoController.text,
-      planoId: _planoSelecionado!,
+      planoIds: _planosSelecionados,
     );
 
     try {
@@ -243,33 +240,46 @@ class _CadastroMedicoScreenState extends State<CadastroMedicoScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Plano
+            // Planos (multi-seleção)
+            const Text(
+              'Planos *',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
             _isLoadingPlanos
                 ? const Center(child: CircularProgressIndicator())
-                : DropdownButtonFormField<String>(
-                    value: _planoSelecionado,
-                    decoration: const InputDecoration(
-                      labelText: 'Plano *',
-                      prefixIcon: Icon(Icons.card_membership),
-                      border: OutlineInputBorder(),
+                : Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(4),
                     ),
-                    items: _planos.map((plano) {
-                      return DropdownMenuItem<String>(
-                        value: plano.id,
-                        child: Text('${plano.nome} - ${plano.valorFormatado}'),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _planoSelecionado = value;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor, selecione um plano';
-                      }
-                      return null;
-                    },
+                    child: _planos.isEmpty
+                        ? const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Text('Nenhum plano disponível'),
+                          )
+                        : Column(
+                            children: _planos.map((plano) {
+                              final isSelected = _planosSelecionados.contains(plano.id);
+                              return CheckboxListTile(
+                                title: Text(plano.nome),
+                                subtitle: Text(plano.valorFormatado),
+                                value: isSelected,
+                                onChanged: (bool? value) {
+                                  setState(() {
+                                    if (value == true) {
+                                      _planosSelecionados.add(plano.id);
+                                    } else {
+                                      _planosSelecionados.remove(plano.id);
+                                    }
+                                  });
+                                },
+                              );
+                            }).toList(),
+                          ),
                   ),
 
             const SizedBox(height: 32),

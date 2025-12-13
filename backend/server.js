@@ -6,6 +6,7 @@ require('dotenv').config();
 const medicoRoutes = require('./routes/medicoRoutes');
 const pacienteRoutes = require('./routes/pacienteRoutes');
 const planoRoutes = require('./routes/planoRoutes');
+const consultaRoutes = require('./routes/consultaRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,8 +19,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Rota inicial
 app.get('/', (req, res) => {
   res.json({ 
-    message: 'API Fala Doutor - CRUD de Médicos, Pacientes e Planos',
-    version: '2.0.0',
+    message: 'API Fala Doutor - Sistema de Gestão Médica',
+    version: '3.0.0',
     endpoints: {
       medicos: {
         'POST /api/medicos': 'Criar novo médico',
@@ -43,6 +44,14 @@ app.get('/', (req, res) => {
         'GET /api/planos/:id': 'Buscar plano por ID',
         'PUT /api/planos/:id': 'Atualizar plano',
         'DELETE /api/planos/:id': 'Deletar plano'
+      },
+      consultas: {
+        'POST /api/consultas': 'Agendar nova consulta',
+        'GET /api/consultas': 'Listar todas as consultas',
+        'GET /api/consultas/:id': 'Buscar consulta por ID',
+        'GET /api/consultas/paciente/:pacienteId/medicos': 'Buscar médicos disponíveis para o paciente',
+        'PUT /api/consultas/:id': 'Atualizar consulta',
+        'DELETE /api/consultas/:id': 'Deletar consulta'
       }
     }
   });
@@ -52,6 +61,7 @@ app.get('/', (req, res) => {
 app.use('/api', medicoRoutes);
 app.use('/api', pacienteRoutes);
 app.use('/api', planoRoutes);
+app.use('/api/consultas', consultaRoutes);
 
 // Tratamento de rotas não encontradas
 app.use((req, res) => {

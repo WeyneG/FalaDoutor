@@ -114,7 +114,7 @@ class PlanoController {
 
       // Verificar se há médicos usando este plano
       const [medicos] = await db.query(
-        'SELECT COUNT(*) as total FROM medicos WHERE plano_id = ?', 
+        'SELECT COUNT(*) as total FROM medico_planos WHERE plano_id = ?', 
         [id]
       );
       

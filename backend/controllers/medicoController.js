@@ -1,5 +1,6 @@
 const MedicoModel = require('../models/medicoModel');
 const PlanoModel = require('../models/planoModel');
+const MedicoPlanoModel = require('../models/medicoPlanoModel');
 
 // Função helper para formatar data para MySQL (YYYY-MM-DD)
 const formatarDataParaMySQL = (data) => {
@@ -23,24 +24,35 @@ class MedicoController {
   
   static async create(req, res) {
     try {
-      const { nome, cpf, crm, data_nascimento, plano_id } = req.body;
+      const { nome, cpf, crm, data_nascimento, plano_ids } = req.body;
 
-
-      if (!nome || !cpf || !crm || !data_nascimento || !plano_id) {
+      // Validar campos obrigatórios
+      if (!nome || !cpf || !crm || !data_nascimento) {
         return res.status(400).json({ 
-          error: 'Todos os campos são obrigatórios: nome, cpf, crm, data_nascimento, plano_id' 
+          error: 'Todos os campos são obrigatórios: nome, cpf, crm, data_nascimento' 
         });
       }
 
-
-      const planoExiste = await PlanoModel.exists(plano_id);
-      if (!planoExiste) {
+      // Validar plano_ids (opcional - médico pode não ter planos)
+      if (plano_ids && !Array.isArray(plano_ids)) {
         return res.status(400).json({ 
-          error: 'Plano não encontrado' 
+          error: 'plano_ids deve ser um array' 
         });
       }
 
+      // Validar que todos os planos existem
+      if (plano_ids && plano_ids.length > 0) {
+        for (const planoId of plano_ids) {
+          const planoExiste = await PlanoModel.exists(planoId);
+          if (!planoExiste) {
+            return res.status(400).json({ 
+              error: `Plano ${planoId} não encontrado` 
+            });
+          }
+        }
+      }
 
+      // Verificar CPF duplicado
       const cpfExistente = await MedicoModel.findByCpf(cpf);
       if (cpfExistente) {
         return res.status(400).json({ 
@@ -48,7 +60,7 @@ class MedicoController {
         });
       }
 
-
+      // Verificar CRM duplicado
       const crmExistente = await MedicoModel.findByCrm(crm);
       if (crmExistente) {
         return res.status(400).json({ 
@@ -56,11 +68,19 @@ class MedicoController {
         });
       }
 
+      // Criar médico
       const dadosMedico = {
-        ...req.body,
-        data_nascimento: formatarDataParaMySQL(req.body.data_nascimento)
+        nome,
+        cpf,
+        crm,
+        data_nascimento: formatarDataParaMySQL(data_nascimento)
       };
       const medicoId = await MedicoModel.create(dadosMedico);
+      
+      // Associar planos ao médico
+      if (plano_ids && plano_ids.length > 0) {
+        await MedicoPlanoModel.addPlanos(medicoId, plano_ids);
+      }
       
       res.status(201).json({ 
         message: 'Médico cadastrado com sucesso',
@@ -138,9 +158,9 @@ class MedicoController {
   static async update(req, res) {
     try {
       const { id } = req.params;
-      const { nome, cpf, crm, data_nascimento, plano_id } = req.body;
+      const { nome, cpf, crm, data_nascimento, plano_ids } = req.body;
 
-
+      // Verificar se médico existe
       const medicoExistente = await MedicoModel.findById(id);
       if (!medicoExistente) {
         return res.status(404).json({ 
@@ -148,22 +168,33 @@ class MedicoController {
         });
       }
 
-
-      if (!nome || !cpf || !crm || !data_nascimento || !plano_id) {
+      // Validar campos obrigatórios
+      if (!nome || !cpf || !crm || !data_nascimento) {
         return res.status(400).json({ 
-          error: 'Todos os campos são obrigatórios: nome, cpf, crm, data_nascimento, plano_id' 
+          error: 'Todos os campos são obrigatórios: nome, cpf, crm, data_nascimento' 
         });
       }
 
-
-      const planoExiste = await PlanoModel.exists(plano_id);
-      if (!planoExiste) {
+      // Validar plano_ids (opcional)
+      if (plano_ids && !Array.isArray(plano_ids)) {
         return res.status(400).json({ 
-          error: 'Plano não encontrado' 
+          error: 'plano_ids deve ser um array' 
         });
       }
 
+      // Validar que todos os planos existem
+      if (plano_ids && plano_ids.length > 0) {
+        for (const planoId of plano_ids) {
+          const planoExiste = await PlanoModel.exists(planoId);
+          if (!planoExiste) {
+            return res.status(400).json({ 
+              error: `Plano ${planoId} não encontrado` 
+            });
+          }
+        }
+      }
   
+      // Verificar CPF duplicado
       const cpfExistente = await MedicoModel.findByCpf(cpf);
       if (cpfExistente && cpfExistente.id != id) {
         return res.status(400).json({ 
@@ -171,7 +202,7 @@ class MedicoController {
         });
       }
 
-
+      // Verificar CRM duplicado
       const crmExistente = await MedicoModel.findByCrm(crm);
       if (crmExistente && crmExistente.id != id) {
         return res.status(400).json({ 
@@ -179,11 +210,20 @@ class MedicoController {
         });
       }
 
+      // Atualizar dados do médico
       const dadosMedico = {
-        ...req.body,
-        data_nascimento: formatarDataParaMySQL(req.body.data_nascimento)
+        nome,
+        cpf,
+        crm,
+        data_nascimento: formatarDataParaMySQL(data_nascimento)
       };
       await MedicoModel.update(id, dadosMedico);
+      
+      // Atualizar planos (remover todos e adicionar novos)
+      await MedicoPlanoModel.removePlanosByMedico(id);
+      if (plano_ids && plano_ids.length > 0) {
+        await MedicoPlanoModel.addPlanos(id, plano_ids);
+      }
       
       res.json({ 
         message: 'Médico atualizado com sucesso' 

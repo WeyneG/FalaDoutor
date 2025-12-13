@@ -66,8 +66,12 @@ class DetalhesMedicoScreen extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    _getCorPlano(medico.planoId),
-                    _getCorPlano(medico.planoId).withOpacity(0.7),
+                    medico.planoIds.isNotEmpty 
+                        ? _getCorPlano(medico.planoIds.first)
+                        : Colors.grey,
+                    (medico.planoIds.isNotEmpty 
+                        ? _getCorPlano(medico.planoIds.first)
+                        : Colors.grey).withOpacity(0.7),
                   ],
                 ),
               ),
@@ -81,7 +85,9 @@ class DetalhesMedicoScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 40,
                         fontWeight: FontWeight.bold,
-                        color: _getCorPlano(medico.planoId),
+                        color: medico.planoIds.isNotEmpty 
+                            ? _getCorPlano(medico.planoIds.first)
+                            : Colors.grey,
                       ),
                     ),
                   ),
@@ -96,23 +102,49 @@ class DetalhesMedicoScreen extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      medico.nomePlano,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+                  // Planos
+                  medico.planoIds.isEmpty
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text(
+                            'Sem planos',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        )
+                      : Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          alignment: WrapAlignment.center,
+                          children: medico.planoIds.map((planoId) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                'Plano $planoId',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
                 ],
               ),
             ),

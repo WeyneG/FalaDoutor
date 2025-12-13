@@ -215,7 +215,9 @@ class _ListaMedicosScreenState extends State<ListaMedicosScreen> {
                 vertical: 8,
               ),
               leading: CircleAvatar(
-                backgroundColor: _getCorPlano(medico.planoId),
+                backgroundColor: medico.planoIds.isNotEmpty 
+                    ? _getCorPlano(medico.planoIds.first)
+                    : Colors.grey,
                 child: Text(
                   medico.nome.substring(0, 1).toUpperCase(),
                   style: const TextStyle(
@@ -237,25 +239,41 @@ class _ListaMedicosScreenState extends State<ListaMedicosScreen> {
                   const SizedBox(height: 4),
                   Text('CRM: ${medico.crm}'),
                   Text('CPF: ${medico.cpfFormatado}'),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _getCorPlano(medico.planoId).withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      medico.nomePlano,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: _getCorPlano(medico.planoId),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+                  const SizedBox(height: 8),
+                  // Planos
+                  medico.planoIds.isEmpty
+                      ? Text(
+                          'Sem planos',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                            fontStyle: FontStyle.italic,
+                          ),
+                        )
+                      : Wrap(
+                          spacing: 4,
+                          runSpacing: 4,
+                          children: medico.planoIds.map((planoId) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _getCorPlano(planoId).withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                'Plano $planoId',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: _getCorPlano(planoId),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
                 ],
               ),
               trailing: Row(

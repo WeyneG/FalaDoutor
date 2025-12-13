@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'lista_medicos_screen.dart';
 import 'lista_pacientes_screen.dart';
 import 'lista_planos_screen.dart';
+import 'lista_consultas_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -195,11 +196,52 @@ class HomeScreen extends StatelessWidget {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 20),
+
+                  // Botão Consultas
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ListaConsultasScreen(),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: const Color(0xFF2196F3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 50,
+                        vertical: 20,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      elevation: 8,
+                      shadowColor: Colors.black.withOpacity(0.3),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.calendar_today, size: 28),
+                        SizedBox(width: 15),
+                        Text(
+                          'Gerenciar Consultas',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 60),
 
                   // Versão
                   const Text(
-                    'Versão 2.0.0',
+                    'Versão 3.0.0',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.white60,

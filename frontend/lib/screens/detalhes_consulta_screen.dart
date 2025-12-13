@@ -1,0 +1,300 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import '../models/consulta.dart';
+import 'cadastro_consulta_screen.dart';
+
+class DetalhesConsultaScreen extends StatelessWidget {
+  final Consulta consulta;
+  final VoidCallback onUpdate;
+
+  const DetalhesConsultaScreen({
+    super.key,
+    required this.consulta,
+    required this.onUpdate,
+  });
+
+  Color _getCorStatus(String status) {
+    switch (status) {
+      case 'agendada':
+        return Colors.blue;
+      case 'realizada':
+        return Colors.green;
+      case 'cancelada':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Detalhes da Consulta'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () async {
+              final resultado = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CadastroConsultaScreen(consulta: consulta),
+                ),
+              );
+              if (resultado == true) {
+                if (context.mounted) {
+                  Navigator.pop(context, true);
+                }
+              }
+            },
+            tooltip: 'Editar',
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // Header com Status
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    _getCorStatus(consulta.status),
+                    _getCorStatus(consulta.status).withOpacity(0.7),
+                  ],
+                ),
+              ),
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.white,
+                    child: Icon(
+                      consulta.status == 'agendada'
+                          ? Icons.schedule
+                          : consulta.status == 'realizada'
+                              ? Icons.check_circle
+                              : Icons.cancel,
+                      size: 50,
+                      color: _getCorStatus(consulta.status),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    consulta.statusTexto,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      consulta.dataHoraFormatada,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Informações
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  _buildInfoCard(
+                    icon: Icons.person,
+                    titulo: 'Paciente',
+                    valor: consulta.pacienteNome ?? 'N/A',
+                    subtitulo: consulta.pacienteCpf != null
+                        ? 'CPF: ${_formatarCPF(consulta.pacienteCpf!)}'
+                        : null,
+                    cor: Colors.blue,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildInfoCard(
+                    icon: Icons.medical_services,
+                    titulo: 'Médico',
+                    valor: consulta.medicoNome ?? 'N/A',
+                    subtitulo: consulta.medicoCrm != null
+                        ? 'CRM: ${consulta.medicoCrm}'
+                        : null,
+                    cor: Colors.green,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildInfoCard(
+                    icon: Icons.card_membership,
+                    titulo: 'Plano',
+                    valor: consulta.planoNome ?? 'N/A',
+                    cor: Colors.purple,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildInfoCard(
+                    icon: Icons.attach_money,
+                    titulo: 'Valor da Consulta',
+                    valor: consulta.valorFormatado,
+                    cor: Colors.orange,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildInfoCard(
+                    icon: Icons.calendar_today,
+                    titulo: 'Data',
+                    valor: consulta.dataFormatada,
+                    cor: Colors.teal,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildInfoCard(
+                    icon: Icons.access_time,
+                    titulo: 'Horário',
+                    valor: consulta.horaFormatada,
+                    cor: Colors.indigo,
+                  ),
+                  
+                  // Observações (se houver)
+                  if (consulta.observacoes != null && consulta.observacoes!.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Card(
+                      elevation: 2,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Row(
+                              children: [
+                                Icon(Icons.notes, color: Colors.grey),
+                                SizedBox(width: 12),
+                                Text(
+                                  'Observações',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              consulta.observacoes!,
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                  
+                  // Data de criação
+                  if (consulta.createdAt != null) ...[
+                    const SizedBox(height: 12),
+                    _buildInfoCard(
+                      icon: Icons.add_circle_outline,
+                      titulo: 'Cadastrada em',
+                      valor: _formatarData(consulta.createdAt!),
+                      cor: Colors.grey,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoCard({
+    required IconData icon,
+    required String titulo,
+    required String valor,
+    String? subtitulo,
+    required Color cor,
+  }) {
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: cor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: cor, size: 28),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    titulo,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    valor,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (subtitulo != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitulo,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatarData(String data) {
+    try {
+      final date = DateTime.parse(data);
+      return DateFormat('dd/MM/yyyy HH:mm').format(date);
+    } catch (e) {
+      return data;
+    }
+  }
+
+  String _formatarCPF(String cpf) {
+    if (cpf.length == 11) {
+      return '${cpf.substring(0, 3)}.${cpf.substring(3, 6)}.${cpf.substring(6, 9)}-${cpf.substring(9)}';
+    }
+    return cpf;
+  }
+}

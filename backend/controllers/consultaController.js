@@ -2,6 +2,7 @@ const ConsultaModel = require('../models/consultaModel');
 const PacienteModel = require('../models/pacienteModel');
 const MedicoModel = require('../models/medicoModel');
 const PlanoModel = require('../models/planoModel');
+const db = require('../config/database');
 
 class ConsultaController {
   // Listar todas as consultas
@@ -212,6 +213,78 @@ class ConsultaController {
       console.error('Erro ao deletar consulta:', error);
       res.status(500).json({ 
         error: 'Erro ao deletar consulta',
+        details: error.message 
+      });
+    }
+  }
+
+  // Buscar consultas de hoje
+  static async getConsultasHoje(req, res) {
+    try {
+      const query = `
+        SELECT 
+          c.*,
+          CAST(c.valor AS CHAR) as valor,
+          pac.nome as paciente_nome,
+          pac.cpf as paciente_cpf,
+          med.nome as medico_nome,
+          med.crm as medico_crm,
+          pl.nome as plano_nome,
+          TIMESTAMPDIFF(MINUTE, NOW(), c.data_consulta) as minutos_restantes
+        FROM consultas c
+        JOIN pacientes pac ON c.paciente_id = pac.id
+        JOIN medicos med ON c.medico_id = med.id
+        JOIN planos pl ON pac.plano_id = pl.id
+        WHERE DATE(c.data_consulta) = CURDATE()
+        AND c.status = 'agendada'
+        ORDER BY c.data_consulta ASC
+      `;
+
+      const [rows] = await db.query(query);
+      
+      res.json({
+        total: rows.length,
+        consultas: rows
+      });
+
+    } catch (error) {
+      console.error('Erro ao buscar consultas de hoje:', error);
+      res.status(500).json({ 
+        error: 'Erro ao buscar consultas de hoje',
+        details: error.message 
+      });
+    }
+  }
+
+  // Buscar estatísticas do dia
+  static async getEstatisticasDia(req, res) {
+    try {
+      const queryTotal = `
+        SELECT 
+          COUNT(*) as total,
+          SUM(CASE WHEN status = 'agendada' THEN 1 ELSE 0 END) as agendadas,
+          SUM(CASE WHEN status = 'realizada' THEN 1 ELSE 0 END) as realizadas,
+          SUM(CASE WHEN status = 'cancelada' THEN 1 ELSE 0 END) as canceladas,
+          SUM(CASE WHEN status = 'realizada' THEN valor ELSE 0 END) as valor_total
+        FROM consultas
+        WHERE DATE(data_consulta) = CURDATE()
+      `;
+
+      const [rows] = await db.query(queryTotal);
+      const stats = rows[0];
+
+      res.json({
+        total: parseInt(stats.total) || 0,
+        agendadas: parseInt(stats.agendadas) || 0,
+        realizadas: parseInt(stats.realizadas) || 0,
+        canceladas: parseInt(stats.canceladas) || 0,
+        valor_total: parseFloat(stats.valor_total) || 0
+      });
+
+    } catch (error) {
+      console.error('Erro ao buscar estatísticas do dia:', error);
+      res.status(500).json({ 
+        error: 'Erro ao buscar estatísticas do dia',
         details: error.message 
       });
     }

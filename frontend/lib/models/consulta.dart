@@ -1,6 +1,3 @@
-import 'medico.dart';
-import 'paciente.dart';
-import 'plano.dart';
 import 'package:intl/intl.dart';
 
 class Consulta {
@@ -20,6 +17,7 @@ class Consulta {
   final String? medicoNome;
   final String? medicoCrm;
   final String? planoNome;
+  final int? minutosRestantes;
 
   Consulta({
     this.id,
@@ -36,6 +34,7 @@ class Consulta {
     this.medicoNome,
     this.medicoCrm,
     this.planoNome,
+    this.minutosRestantes,
   });
 
   // Converter de JSON para objeto
@@ -59,6 +58,7 @@ class Consulta {
       medicoNome: json['medico_nome'],
       medicoCrm: json['medico_crm'],
       planoNome: json['plano_nome'],
+      minutosRestantes: json['minutos_restantes'],
     );
   }
 

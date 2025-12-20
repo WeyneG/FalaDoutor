@@ -1,11 +1,51 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'lista_medicos_screen.dart';
 import 'lista_pacientes_screen.dart';
 import 'lista_planos_screen.dart';
 import 'lista_consultas_screen.dart';
+import 'notificacoes_screen.dart';
+import '../services/notificacao_service.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _totalConsultasHoje = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _atualizarNotificacoes();
+    // Atualizar notificações a cada 1 minuto
+    _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      _atualizarNotificacoes();
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _atualizarNotificacoes() async {
+    try {
+      final result = await NotificacaoService.getConsultasHoje();
+      if (mounted) {
+        setState(() {
+          _totalConsultasHoje = result['total'] as int;
+        });
+      }
+    } catch (e) {
+      // Erro silencioso - não precisa notificar o usuário
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,12 +62,14 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
         child: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+          child: Stack(
+            children: [
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
                   // Logo / Ícone
                   Container(
                     width: 120,
@@ -237,19 +279,68 @@ class HomeScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 60),
-
-                  // Versão
-                  const Text(
-                    'Versão 3.0.0',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white60,
-                    ),
+                      // Versão
+                      const Text(
+                        'Versão 3.0.0',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white60,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
+              // Ícone de notificação no topo direito
+              Positioned(
+                top: 16,
+                right: 16,
+                child: Stack(
+                  children: [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.notifications_outlined,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const NotificacoesScreen(),
+                          ),
+                        ).then((_) => _atualizarNotificacoes());
+                      },
+                    ),
+                    if (_totalConsultasHoje > 0)
+                      Positioned(
+                        right: 8,
+                        top: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 20,
+                            minHeight: 20,
+                          ),
+                          child: Text(
+                            _totalConsultasHoje > 99 ? '99+' : '$_totalConsultasHoje',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),

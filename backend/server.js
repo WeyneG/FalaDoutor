@@ -7,6 +7,7 @@ const medicoRoutes = require('./routes/medicoRoutes');
 const pacienteRoutes = require('./routes/pacienteRoutes');
 const planoRoutes = require('./routes/planoRoutes');
 const consultaRoutes = require('./routes/consultaRoutes');
+const relatorioRoutes = require('./routes/relatorioRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -62,11 +63,13 @@ app.use('/api', medicoRoutes);
 app.use('/api', pacienteRoutes);
 app.use('/api', planoRoutes);
 app.use('/api/consultas', consultaRoutes);
+app.use('/api/relatorios', relatorioRoutes);
 
-// Tratamento de rotas não encontradas
+// Handler para rotas não encontradas
 app.use((req, res) => {
   res.status(404).json({ 
-    error: 'Rota não encontrada' 
+    error: 'Rota não encontrada',
+    path: req.path 
   });
 });
 

@@ -5,6 +5,7 @@ import 'lista_pacientes_screen.dart';
 import 'lista_planos_screen.dart';
 import 'lista_consultas_screen.dart';
 import 'notificacoes_screen.dart';
+import 'relatorios_screen.dart';
 import '../services/notificacao_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -279,6 +280,47 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 20),
+
+                  // Botão Relatórios
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const RelatoriosScreen(),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: const Color(0xFF2196F3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 50,
+                        vertical: 20,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      elevation: 8,
+                      shadowColor: Colors.black.withOpacity(0.3),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.bar_chart, size: 28),
+                        SizedBox(width: 15),
+                        Text(
+                          'Relatórios',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                       // Versão
                       const Text(
                         'Versão 3.0.0',
@@ -345,5 +387,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+    
   }
 }
